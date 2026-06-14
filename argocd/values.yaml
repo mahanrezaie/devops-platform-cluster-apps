@@ -1,0 +1,82 @@
+argo-cd:
+  configs:
+    params:
+      server.insecure: true
+    cm:
+      url: http://argocd.homelab
+      exec.enabled: true
+      params:
+        server.enable.gzip: true
+
+  server:
+    replicas: 1
+    ingress:
+      # -- Enable an ingress resource for the Argo CD server
+      enabled: true
+      # -- Additional ingress annotations
+
+      # -- Additional ingress labels
+      labels: {}
+      # -- Defines which ingress controller will implement the resource
+      # -- If empty, if any ingress controller is marked as default, it will be used
+      ingressClassName: "traefik"
+
+      hosts:
+      - argocd.si1.automobile.sanaap.co
+
+      paths:
+      - /
+      pathType: ImplementationSpecific
+      # -- Additional ingress paths
+      extraPaths: []
+      tls: false
+
+      # -- Uses `server.service.servicePortHttps` instead `server.service.servicePortHttp`
+      https: false
+  redis-ha:
+    enabled: false
+    image:
+      repository: docker.io/redis
+    haproxy:
+      image:
+        repository: docker.io/haproxy
+  redis:
+    resources: 
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 200m
+        memory: 128Mi
+
+  controller:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 200m
+        memory: 128Mi
+
+  repoServer:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 200m
+        memory: 128Mi
+
+
+  applicationSet:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 200m
+        memory: 128Mi
+
