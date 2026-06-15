@@ -1,0 +1,21 @@
+topolvm:
+  controller:
+    storageCapacityTracking:
+      enabled: true
+    replicaCount: 1
+  scheduler:
+    enabled: false
+  # Disable features that don't work on k8s 1.26 or later
+  webhook:
+    podMutatingWebhook:
+      enabled: false
+  podSecurityPolicy:
+    create: false
+  # Set the lvmd spec
+  lvmd:
+    deviceClasses:
+      - name: ssd
+        volume-group: topolvm
+        default: true
+        spare-gb: 2
+

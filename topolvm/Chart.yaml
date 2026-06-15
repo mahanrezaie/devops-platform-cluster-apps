@@ -1,0 +1,9 @@
+apiVersion: v2
+name: topolvm
+description: An umbrella chart for the topolvm
+type: application
+version: 0.1.0
+dependencies:
+- name: topolvm
+  version: 14.0.0
+  repository: https://topolvm.github.io/topolvm
