@@ -54,10 +54,10 @@ argo-cd:
     resources:
       limits:
         cpu: 200m
-        memory: 128Mi
+        memory: 400Mi
       requests:
         cpu: 200m
-        memory: 128Mi
+        memory: 400Mi
 
   repoServer:
     replicas: 1
