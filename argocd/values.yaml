@@ -80,3 +80,15 @@ argo-cd:
         cpu: 200m
         memory: 128Mi
 
+  global:
+    env:
+      - name: HTTP_PROXY
+        value: http://192.168.1.8:1081
+      - name: HTTPS_PROXY
+        value: http://192.168.1.8:1081
+      - name: http_proxy
+        value: http://192.168.1.8:1081
+      - name: https_proxy
+        value: http://192.168.1.8:1081
+      - name: NO_PROXY
+        value: argocd-repo-server,argocd-application-controller,argocd-metrics,argocd-server,argocd-server-metrics,argocd-redis,argocd-redis-ha-haproxy,argocd-dex-server,localhost,10.0.0.0/8,*.ir
