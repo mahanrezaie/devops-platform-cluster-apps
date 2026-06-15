@@ -3,7 +3,7 @@ argo-cd:
     params:
       server.insecure: true
     cm:
-      url: http://argocd.homelab
+      url: http://argocd.example.com
       exec.enabled: true
       params:
         server.enable.gzip: true
@@ -20,9 +20,7 @@ argo-cd:
       # -- Defines which ingress controller will implement the resource
       # -- If empty, if any ingress controller is marked as default, it will be used
       ingressClassName: "traefik"
-
-      hosts:
-      - argocd.si1.automobile.sanaap.co
+      hostname: "argocd.example.com"
 
       paths:
       - /
@@ -48,13 +46,6 @@ argo-cd:
       requests:
         cpu: 200m
         memory: 128Mi
-    tolerations:
-    - key: "node-role.kubernetes.io/control-plane"
-      operator: "Exists"
-      effect: "NoSchedule"
-    nodeSelector:
-      node-role.kubernetes.io/control-plane: ""
-
 
   controller:
     replicas: 1
@@ -65,13 +56,6 @@ argo-cd:
       requests:
         cpu: 300m
         memory: 500Mi
-    tolerations:
-      - key: "node-role.kubernetes.io/control-plane"
-        operator: "Exists"
-        effect: "NoSchedule"
-    nodeSelector:
-      node-role.kubernetes.io/control-plane: ""
-
 
   repoServer:
     replicas: 1
@@ -82,13 +66,6 @@ argo-cd:
       requests:
         cpu: 200m
         memory: 128Mi
-    tolerations:
-     - key: "node-role.kubernetes.io/control-plane"
-       operator: "Exists"
-       effect: "NoSchedule"
-    nodeSelector:
-      node-role.kubernetes.io/control-plane: ""
-
 
   applicationSet:
     replicas: 1
