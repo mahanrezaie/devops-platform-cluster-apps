@@ -48,16 +48,30 @@ argo-cd:
       requests:
         cpu: 200m
         memory: 128Mi
+    tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    nodeselector:
+      node-role.kubernetes.io/control-plane: ""
+
 
   controller:
     replicas: 1
     resources:
       limits:
-        cpu: 200m
-        memory: 400Mi
+        cpu: 300m
+        memory: 500Mi
       requests:
-        cpu: 200m
-        memory: 400Mi
+        cpu: 300m
+        memory: 500Mi
+    tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+    nodeselector:
+      node-role.kubernetes.io/control-plane: ""
+
 
   repoServer:
     replicas: 1
@@ -68,6 +82,12 @@ argo-cd:
       requests:
         cpu: 200m
         memory: 128Mi
+    tolerations:
+     - key: "node-role.kubernetes.io/control-plane"
+       operator: "Exists"
+       effect: "NoSchedule"
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
 
 
   applicationSet:
