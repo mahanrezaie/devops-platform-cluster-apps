@@ -52,7 +52,7 @@ argo-cd:
     - key: "node-role.kubernetes.io/control-plane"
       operator: "Exists"
       effect: "NoSchedule"
-    nodeselector:
+    nodeSelector:
       node-role.kubernetes.io/control-plane: ""
 
 
@@ -69,7 +69,7 @@ argo-cd:
       - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"
         effect: "NoSchedule"
-    nodeselector:
+    nodeSelector:
       node-role.kubernetes.io/control-plane: ""
 
 
