@@ -1,0 +1,10 @@
+apiVersion: v2
+name: kube-prometheus-stack
+description: An umbrella chart for installing kube-prometheus-stack.
+type: application
+version: 0.1.0
+dependencies:
+  - name: kube-prometheus-stack
+    version: 56.x.x
+    repository: oci://ghcr.io/prometheus-community/charts
+    condition: kube-prometheus-stack.enabled

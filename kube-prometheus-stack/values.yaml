@@ -1,0 +1,306 @@
+kube-prometheus-stack:
+  defaultRules:
+    create: true
+
+  alertmanager:
+    config:
+      global:
+        resolve_timeout: 5m
+      inhibit_rules:
+      - source_matchers:
+        - 'severity = critical'
+        target_matchers:
+        - 'severity =~ warning|info'
+        equal:
+        - 'namespace'
+        - 'alertname'
+      - source_matchers:
+        - 'severity = warning'
+        target_matchers:
+        - 'severity = info'
+        equal:
+        - 'namespace'
+        - 'alertname'
+      - source_matchers:
+        - 'alertname = InfoInhibitor'
+        target_matchers:
+        - 'severity = info'
+        equal:
+        - 'namespace'
+      route:
+        group_by: ['...']
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 12h
+        receiver: 'null'
+        routes:
+        - receiver: 'null'
+          continue: true
+        - receiver: 'telegram-devops-platform-critical-alerts'
+          matchers:
+          - destination = "telegram"
+          group_by: ['...']
+          repeat_interval: 1h
+      receivers:
+      - name: 'null'
+      - name: 'telegram-devops-platform-critical-alerts'
+        telegram_configs:
+        - bot_token: "7197347765:AAGVy3rATuPGWe53t8J_xV8CQAyp0gs69Vw"
+          api_url: https://api.telegram.org
+          chat_id: -1002156599762
+          parse_mode: 'Markdown'
+          message: '{{ template "telegram.simple.message" . }}'
+          http_config:
+            proxy_url: 'http://192.168.1.8:1081'
+
+      templates:
+      - '/etc/alertmanager/config/*.tmpl'
+
+
+    ## Alertmanager template files to format alerts
+    templateFiles:
+      telegram_template.tmpl: |-
+
+        {{ define "alertmanager" }}
+        {{ .ExternalURL | reReplaceAll ".*alertmanager\\.(.*)" "$1" }}
+        {{ end }}
+
+        {{ define "cluster" }}
+        {{- if .GroupLabels.cluster -}}
+        {{ .GroupLabels.cluster }}
+        {{- else -}}
+        unknown
+        {{- end -}}
+        {{ end }}
+
+        {{ define "labels" }}
+        🏷 <b>Labels:</b>
+        {{- range .Labels.SortedPairs }}
+          {{- if and
+            (ne .Name "severity")
+            (ne .Name "namespace")
+            (ne .Name "alertname")
+            (ne .Name "prometheus")
+            (ne .Name "metrics_path")
+            (ne .Name "endpoint")
+          }}
+        • <i>{{ .Name }}</i>: <code>{{ .Value }}</code>
+          {{- end }}
+        {{- end }}
+        {{ end }}
+
+        {{ define "info_alert" }}
+        ℹ️ <a href="{{ .GeneratorURL }}"><b>{{ .Labels.alertname }}</b></a> - <code>{{ .Labels.severity }}</code>
+        {{- if .Annotations.description }}
+        📖 {{ .Annotations.description }}
+        {{- end }}
+        {{ end }}
+
+        {{ define "warning_alert" }}
+        ⚠️ <a href="{{ .GeneratorURL }}"><b>{{ .Labels.alertname }}</b></a> - <code>{{ .Labels.severity }}</code>
+
+        {{- if .Annotations.summary }}
+        📝 {{ .Annotations.summary }}
+        {{- end }}
+
+        {{- if .Annotations.description }}
+        📖 {{ .Annotations.description }}
+        {{- end }}
+
+        {{- if .Annotations.runbook_url }}
+        📚 <a href="{{ .Annotations.runbook_url }}">Runbook</a>
+        {{- end }}
+        {{ end }}
+
+        {{ define "critical_alert" }}
+        ❗️ <a href="{{ .GeneratorURL }}"><b>{{ .Labels.alertname }}</b></a> - <code>{{ .Labels.severity }}</code>
+
+        {{- if .Annotations.summary }}
+        📝 {{ .Annotations.summary }}
+        {{- end }}
+
+        {{- if .Annotations.description }}
+        📖 {{ .Annotations.description }}
+        {{- end }}
+
+        {{ template "labels" . }}
+
+        {{- if .Annotations.runbook_url }}
+        📚 <a href="{{ .Annotations.runbook_url }}">Runbook</a>
+        {{- end }}
+        {{ end }}
+
+        {{ define "alerts_summary" }}
+        📊 <b>Summary:</b> {{ len . }} alerts
+
+        {{- range . }}
+        • <a href="{{ .GeneratorURL }}"><b>{{ .Labels.alertname }}</b></a>
+          <code>{{ .Labels.severity }}</code>
+        {{- end }}
+        {{ end }}
+
+        {{ define "__text_alert_list" }}
+        {{- if le (len .) 10 }}
+          {{- range . }}
+        ---
+            {{- if eq .Labels.severity "info" }}
+              {{ template "info_alert" . }}
+            {{- else if eq .Labels.severity "warning" }}
+              {{ template "warning_alert" . }}
+            {{- else if eq .Labels.severity "critical" }}
+              {{ template "critical_alert" . }}
+            {{- else }}
+              {{ template "info_alert" . }}
+            {{- end }}
+          {{- end }}
+        {{- else }}
+          {{ template "alerts_summary" . }}
+        {{- end }}
+        {{ end }}
+
+        {{ define "telegram.message" }}
+        🚨 <b>Alertmanager:</b> {{ template "alertmanager" . }}
+        🏷 <b>Cluster:</b> {{ template "cluster" . }}
+
+        {{- if .GroupLabels.namespace }}
+        📦 <b>Namespace:</b> {{ .GroupLabels.namespace }}
+        {{- else }}
+        📦 <b>Scope:</b> Cluster-wide
+        {{- end }}
+
+        {{- if gt (len .Alerts.Firing) 0 }}
+        🔥 <b>Firing Alerts</b>
+        {{ template "__text_alert_list" .Alerts.Firing }}
+        {{- end }}
+
+        {{- if gt (len .Alerts.Resolved) 0 }}
+        ✅ <b>Resolved Alerts</b>
+        {{ template "__text_alert_list" .Alerts.Resolved }}
+        {{- end }}
+
+        {{ end }}        
+
+    ingress:
+      enabled: false
+    alertmanagerSpec:
+      storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: topolvm-provisioner
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+          selector: {}
+      resources:
+        requests:
+          cpu: 50m
+          memory: 50Mi
+        limits:
+          cpu: 500m
+          memory: 500Mi
+
+  grafana:
+    enabled: true
+    namespaceOverride: ""
+
+    defaultDashboardsTimezone: Asia/Tehran
+
+    admin:
+      existingSecret: "grafana-auth"
+      userKey: admin-user
+      passwordKey: admin-password
+
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+
+      hosts:
+      - grafana.local
+
+    sidecar:
+      datasources:
+        createPrometheusReplicasDatasources: true
+    
+    persistence:
+      enabled: true
+      size: 500Mi
+      storageClassName: topolvm-provisioner
+
+  ## Manages Prometheus and Alertmanager components
+  ##
+  prometheusOperator:
+    enabled: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 200Mi
+      requests:
+        cpu: 10m
+        memory: 50Mi
+
+  prometheus-node-exporter:
+    tolerations:
+    - effect: NoSchedule
+      operator: Exists
+    - effect: NoExecute
+      operator: Exists
+
+  ## Deploy a Prometheus instance
+  ##
+  prometheus:
+    enabled: true
+
+    servicePerReplica:
+      enabled: true
+
+    thanosIngress:
+      enabled: false
+
+    ingress:
+      enabled: false
+
+      resources:
+        requests:
+          memory: 250Mi
+          cpu: 250m
+        limits:
+          memory: 500Mi
+          cpu: 500m
+
+      retention: 12h
+      retentionSize: "2GiB"
+
+      replicas: 1
+
+      priorityClassName: "system-node-critical"
+
+      externalLabels:
+        org: devops-platform
+        region: homelab
+        cluster: test
+
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: topolvm-provisioner
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 4Gi
+
+  thanosRuler:
+    enabled: false
+
+  ## Setting to true produces cleaner resource names, but requires a data migration because the name of the persistent volume changes. Therefore this should only be set once on initial installation.
+  ##
+  cleanPrometheusOperatorObjectNames: true
+
+  kubeEtcd:
+    enabled: false
+    serviceMonitor:
+      enabled: true
+
+      scheme: http
+      insecureSkipVerify: false
+      serverName: "localhost"
