@@ -247,18 +247,20 @@ kube-prometheus-stack:
       operator: Exists
 
   ## Deploy a Prometheus instance
-  ##
   prometheus:
     enabled: true
 
-    servicePerReplica:
-      enabled: true
+    prometheusSpec:
 
-    thanosIngress:
-      enabled: false
+      replicas: 1
 
-    ingress:
-      enabled: false
+      retention: 12h
+      retentionSize: "2GiB"
+
+      externalLabels:
+        org: devops-platform
+        region: homelab
+        cluster: test
 
       resources:
         requests:
@@ -268,27 +270,15 @@ kube-prometheus-stack:
           memory: 500Mi
           cpu: 500m
 
-      retention: 12h
-      retentionSize: "2GiB"
-
-      replicas: 1
-
-      priorityClassName: "system-node-critical"
-
-      externalLabels:
-        org: devops-platform
-        region: homelab
-        cluster: test
-
       storageSpec:
         volumeClaimTemplate:
           spec:
             storageClassName: topolvm-provisioner
-            accessModes: ["ReadWriteOnce"]
+            accessModes:
+              - ReadWriteOnce
             resources:
               requests:
                 storage: 4Gi
-
   thanosRuler:
     enabled: false
 
