@@ -45,7 +45,7 @@ argo-cd:
         memory: 128Mi
       requests:
         cpu: 200m
-        memory: 128Mi
+        memory: 256Mi
 
   controller:
     replicas: 1
@@ -64,8 +64,8 @@ argo-cd:
         cpu: 200m
         memory: 256Mi
       requests:
-        cpu: 200m
-        memory: 128Mi
+        cpu: 400m
+        memory: 500Mi
 
   applicationSet:
     replicas: 1
