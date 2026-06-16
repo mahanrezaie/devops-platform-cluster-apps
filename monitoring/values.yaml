@@ -137,6 +137,6 @@ grafana:
       datasources:
         - name: Prometheus
           type: prometheus
-          url: http://prometheus-server
+          url: http://monitoring-prometheus-server
           access: proxy
           isDefault: true
