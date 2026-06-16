@@ -45,9 +45,9 @@ kube-prometheus-stack:
       - name: 'null'
       - name: 'telegram-devops-platform-critical-alerts'
         telegram_configs:
-        - bot_token: "7197347765:AAGVy3rATuPGWe53t8J_xV8CQAyp0gs69Vw"
+        - bot_token: "-100"
           api_url: https://api.telegram.org
-          chat_id: -1002156599762
+          chat_id: -100
           parse_mode: 'Markdown'
           message: '{{ template "telegram.simple.message" . }}'
           http_config:
