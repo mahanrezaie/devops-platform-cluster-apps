@@ -88,4 +88,4 @@ argo-cd:
       - name: https_proxy
         value: http://192.168.1.8:1081
       - name: NO_PROXY
-        value: argocd-repo-server,argocd-application-controller,argocd-metrics,argocd-server,argocd-server-metrics,argocd-redis,argocd-redis-ha-haproxy,argocd-dex-server,localhost,10.0.0.0/8,*.ir, grafana.github.io, github.com
+        value: argocd-repo-server,argocd-application-controller,argocd-metrics,argocd-server,argocd-server-metrics,argocd-redis,argocd-redis-ha-haproxy,argocd-dex-server,localhost,10.0.0.0/8,*.ir, grafana.github.io
