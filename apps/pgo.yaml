@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pgo
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mahanrezaie/devops-platform-cluster-apps.git
+    path: pgo
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: pgo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - Validate=false
+    - Prune=true
+    - SelfHeal=true
