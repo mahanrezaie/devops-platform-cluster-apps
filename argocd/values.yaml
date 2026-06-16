@@ -42,7 +42,7 @@ argo-cd:
     resources: 
       limits:
         cpu: 200m
-        memory: 128Mi
+        memory: 256Mi
       requests:
         cpu: 200m
         memory: 256Mi
@@ -62,10 +62,10 @@ argo-cd:
     resources:
       limits:
         cpu: 200m
-        memory: 256Mi
+        memory: 500Mi
       requests:
         cpu: 400m
-        memory: 500Mi
+        memory: 256Mi
 
   applicationSet:
     replicas: 1
