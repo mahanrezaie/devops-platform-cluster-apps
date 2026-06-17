@@ -61,124 +61,37 @@ kube-prometheus-stack:
     templateFiles:
       telegram_template.tmpl: |-
 
-        {{ define "alertmanager" }}
-        {{ .ExternalURL | reReplaceAll ".*alertmanager\\.(.*)" "$1" }}
-        {{ end }}
-
-        {{ define "cluster" }}
-        {{- if .GroupLabels.cluster -}}
-        {{ .GroupLabels.cluster }}
-        {{- else -}}
-        unknown
-        {{- end -}}
-        {{ end }}
-
-        {{ define "labels" }}
-        🏷 <b>Labels:</b>
-        {{- range .Labels.SortedPairs }}
-          {{- if and
-            (ne .Name "severity")
-            (ne .Name "namespace")
-            (ne .Name "alertname")
-            (ne .Name "prometheus")
-            (ne .Name "metrics_path")
-            (ne .Name "endpoint")
-          }}
-        • <i>{{ .Name }}</i>: <code>{{ .Value }}</code>
-          {{- end }}
-        {{- end }}
-        {{ end }}
-
-        {{ define "info_alert" }}
-        ℹ️ <a href="{{ .GeneratorURL }}"><b>{{ .Labels.alertname }}</b></a> - <code>{{ .Labels.severity }}</code>
-        {{- if .Annotations.description }}
-        📖 {{ .Annotations.description }}
-        {{- end }}
-        {{ end }}
-
-        {{ define "warning_alert" }}
-        ⚠️ <a href="{{ .GeneratorURL }}"><b>{{ .Labels.alertname }}</b></a> - <code>{{ .Labels.severity }}</code>
-
-        {{- if .Annotations.summary }}
-        📝 {{ .Annotations.summary }}
-        {{- end }}
-
-        {{- if .Annotations.description }}
-        📖 {{ .Annotations.description }}
-        {{- end }}
-
-        {{- if .Annotations.runbook_url }}
-        📚 <a href="{{ .Annotations.runbook_url }}">Runbook</a>
-        {{- end }}
-        {{ end }}
-
-        {{ define "critical_alert" }}
-        ❗️ <a href="{{ .GeneratorURL }}"><b>{{ .Labels.alertname }}</b></a> - <code>{{ .Labels.severity }}</code>
-
-        {{- if .Annotations.summary }}
-        📝 {{ .Annotations.summary }}
-        {{- end }}
-
-        {{- if .Annotations.description }}
-        📖 {{ .Annotations.description }}
-        {{- end }}
-
-        {{ template "labels" . }}
-
-        {{- if .Annotations.runbook_url }}
-        📚 <a href="{{ .Annotations.runbook_url }}">Runbook</a>
-        {{- end }}
-        {{ end }}
-
-        {{ define "alerts_summary" }}
-        📊 <b>Summary:</b> {{ len . }} alerts
-
-        {{- range . }}
-        • <a href="{{ .GeneratorURL }}"><b>{{ .Labels.alertname }}</b></a>
-          <code>{{ .Labels.severity }}</code>
-        {{- end }}
-        {{ end }}
-
-        {{ define "__text_alert_list" }}
-        {{- if le (len .) 10 }}
-          {{- range . }}
-        ---
-            {{- if eq .Labels.severity "info" }}
-              {{ template "info_alert" . }}
-            {{- else if eq .Labels.severity "warning" }}
-              {{ template "warning_alert" . }}
-            {{- else if eq .Labels.severity "critical" }}
-              {{ template "critical_alert" . }}
-            {{- else }}
-              {{ template "info_alert" . }}
-            {{- end }}
-          {{- end }}
-        {{- else }}
-          {{ template "alerts_summary" . }}
-        {{- end }}
-        {{ end }}
-
         {{ define "telegram.message" }}
-        🚨 <b>Alertmanager:</b> {{ template "alertmanager" . }}
-        🏷 <b>Cluster:</b> {{ template "cluster" . }}
-
-        {{- if .GroupLabels.namespace }}
-        📦 <b>Namespace:</b> {{ .GroupLabels.namespace }}
-        {{- else }}
-        📦 <b>Scope:</b> Cluster-wide
-        {{- end }}
-
-        {{- if gt (len .Alerts.Firing) 0 }}
-        🔥 <b>Firing Alerts</b>
-        {{ template "__text_alert_list" .Alerts.Firing }}
-        {{- end }}
-
-        {{- if gt (len .Alerts.Resolved) 0 }}
-        ✅ <b>Resolved Alerts</b>
-        {{ template "__text_alert_list" .Alerts.Resolved }}
-        {{- end }}
-
-        {{ end }}        
+        {{ range .Alerts.Firing }}
+        🚨 {{ .Labels.alertname }}
+        
+        Severity: {{ .Labels.severity }}
+        
+        {{ if .Annotations.summary }}
+        Summary: {{ .Annotations.summary }}
+        {{ end }}
+        
+        {{ if .Annotations.description }}
+        Description:
+        {{ .Annotations.description }}
+        {{ end }}
+        
+        Node: {{ .Labels.node }}
+        {{ if .Labels.namespace }}
+        Namespace: {{ .Labels.namespace }}
+        {{ end }}
+        
+        ---
+        {{ end }}
+        
+        {{ range .Alerts.Resolved }}
+        ✅ RESOLVED: {{ .Labels.alertname }}
+        
+        Node: {{ .Labels.node }}
+        
+        ---
+        {{ end }}
+        {{ end }}
 
     ingress:
       enabled: false
