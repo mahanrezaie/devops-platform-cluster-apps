@@ -8,8 +8,10 @@ metadata:
     release: kube-prometheus-stack
 spec:
   groups:
+
     - name: cluster.cpu
       rules:
+
         - alert: NodeHighCPUUsage
           expr: |
             (
@@ -30,66 +32,15 @@ spec:
             destination: telegram
             severity: critical
           annotations:
-            summary: 'High CPU usage on {{ "{{" }} $labels.node {{ "}}" }}'
+            summary: 'High CPU usage on {{ $labels.node }}'
             description: |
               CPU usage > 90% for 10m.
-              Node={{ "{{" }} $labels.node {{ "}}" }} Instance={{ "{{" }} $labels.instance {{ "}}" }}
-              Current={{ "{{" }} printf "%.2f" $value {{ "}}" }}%
-
-        - alert: NodeHighCPUStealTime
-          expr: |
-            (
-              label_replace(
-                100 * avg by (instance) (
-                  rate(node_cpu_seconds_total{job="node-exporter", mode="steal"}[5m])
-                ),
-                "instance", "$1", "instance", "(.*):.*"
-              )
-              * on(instance) group_left(node)
-              label_replace(
-                kube_node_info{job="kube-state-metrics"},
-                "instance", "$1", "internal_ip", "(.*)"
-              )
-            ) > 5
-          for: 5m
-          labels:
-            destination: telegram
-            severity: critical
-          annotations:
-            summary: 'High CPU steal time on {{ "{{" }} $labels.node {{ "}}" }}'
-            description: |
-              CPU steal > 5% for 5m.
-              Node={{ "{{" }} $labels.node {{ "}}" }} Instance={{ "{{" }} $labels.instance {{ "}}" }}
-              Current={{ "{{" }} printf "%.2f" $value {{ "}}" }}%
-
-        - alert: NodeHighCPUIOWait
-          expr: |
-            (
-              label_replace(
-                100 * avg by (instance) (
-                  rate(node_cpu_seconds_total{job="node-exporter", mode="iowait"}[5m])
-                ),
-                "instance", "$1", "instance", "(.*):.*"
-              )
-              * on(instance) group_left(node)
-              label_replace(
-                kube_node_info{job="kube-state-metrics"},
-                "instance", "$1", "internal_ip", "(.*)"
-              )
-            ) > 20
-          for: 5m
-          labels:
-            destination: telegram
-            severity: critical
-          annotations:
-            summary: 'High CPU iowait on {{ "{{" }} $labels.node {{ "}}" }}'
-            description: |
-              CPU iowait > 20% for 5m.
-              Node={{ "{{" }} $labels.node {{ "}}" }} Instance={{ "{{" }} $labels.instance {{ "}}" }}
-              Current={{ "{{" }} printf "%.2f" $value {{ "}}" }}%
+              Node={{ $labels.node }} Instance={{ $labels.instance }}
+              Current={{ printf "%.2f" $value }}%
 
     - name: cluster.memory
       rules:
+
         - alert: NodeHighMemoryUsage
           expr: |
             (
@@ -111,14 +62,15 @@ spec:
             destination: telegram
             severity: critical
           annotations:
-            summary: 'High memory usage on {{ "{{" }} $labels.node {{ "}}" }}'
+            summary: 'High memory usage on {{ $labels.node }}'
             description: |
               Memory usage > 90% for 5m.
-              Node={{ "{{" }} $labels.node {{ "}}" }} Instance={{ "{{" }} $labels.instance {{ "}}" }}
-              Current={{ "{{" }} printf "%.2f" $value {{ "}}" }}%
+              Node={{ $labels.node }} Instance={{ $labels.instance }}
+              Current={{ printf "%.2f" $value }}%
 
     - name: cluster.disk
       rules:
+
         - alert: NodeDiskSpaceUsageHigh
           expr: |
             (
@@ -142,12 +94,12 @@ spec:
             destination: telegram
             severity: critical
           annotations:
-            summary: 'Disk usage high on {{ "{{" }} $labels.node {{ "}}" }} ({{ "{{" }} $labels.mountpoint {{ "}}" }})'
+            summary: 'Disk usage high on {{ $labels.node }} ({{ $labels.mountpoint }})'
             description: |
               Disk usage > 90% for 15m.
-              Node={{ "{{" }} $labels.node {{ "}}" }} Instance={{ "{{" }} $labels.instance {{ "}}" }}
-              Mount={{ "{{" }} $labels.mountpoint {{ "}}" }} Device={{ "{{" }} $labels.device {{ "}}" }} FSType={{ "{{" }} $labels.fstype {{ "}}" }}
-              Used={{ "{{" }} printf "%.2f" $value {{ "}}" }}%
+              Node={{ $labels.node }} Instance={{ $labels.instance }}
+              Mount={{ $labels.mountpoint }} Device={{ $labels.device }} FSType={{ $labels.fstype }}
+              Used={{ printf "%.2f" $value }}%
 
         - alert: NodeDiskFreeLow
           expr: |
@@ -189,62 +141,9 @@ spec:
             destination: telegram
             severity: critical
           annotations:
-            summary: 'Disk free low on {{ "{{" }} $labels.node {{ "}}" }} ({{ "{{" }} $labels.mountpoint {{ "}}" }})'
+            summary: 'Disk free low on {{ $labels.node }} ({{ $labels.mountpoint }})'
             description: |
               Free space low for 15m.
-              Node={{ "{{" }} $labels.node {{ "}}" }}
-              Mount={{ "{{" }} $labels.mountpoint {{ "}}" }} Device={{ "{{" }} $labels.device {{ "}}" }}
-              Free={{ "{{" }} humanize1024 $value {{ "}}" }}B
-
-    - name: cluster.pvc
-      rules:
-        - alert: PVCUsageHigh
-          expr: |
-            100 * (
-              kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"} /
-              kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
-            ) > 90
-          for: 10m
-          labels:
-            destination: telegram
-            severity: critical
-          annotations:
-            summary: 'PVC {{ "{{" }} $labels.persistentvolumeclaim {{ "}}" }} high usage (ns={{ "{{" }} $labels.namespace {{ "}}" }})'
-            description: |
-              PVC usage > 90% for 10m.
-              PVC={{ "{{" }} $labels.namespace {{ "}}" }}/{{ "{{" }} $labels.persistentvolumeclaim {{ "}}" }}
-              UsedPct={{ "{{" }} printf "%.2f" $value {{ "}}" }}%
-              Instance={{ "{{" }} $labels.instance {{ "}}" }}
-
-        - alert: PVCInodeUsageHigh
-          expr: |
-            100 * (
-              kubelet_volume_stats_inodes_used{job="kubelet", metrics_path="/metrics"} /
-              kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
-            ) > 85
-          for: 10m
-          labels:
-            destination: telegram
-            severity: critical
-          annotations:
-            summary: 'PVC {{ "{{" }} $labels.persistentvolumeclaim {{ "}}" }} high inode usage (ns={{ "{{" }} $labels.namespace {{ "}}" }})'
-            description: |
-              PVC inode usage > 85% for 10m.
-              PVC={{ "{{" }} $labels.namespace {{ "}}" }}/{{ "{{" }} $labels.persistentvolumeclaim {{ "}}" }}
-              UsedInodesPct={{ "{{" }} printf "%.2f" $value {{ "}}" }}%
-              Instance={{ "{{" }} $labels.instance {{ "}}" }}
-
-    - name: cluster.node-availability
-      rules:
-        - alert: NodeNotReady
-          expr: |
-            max by (node) (
-              kube_node_status_condition{condition="Ready", status="true"}
-            ) == 0
-          for: 1m
-          labels:
-            destination: telegram
-            severity: critical
-          annotations:
-            summary: 'Node NotReady: {{ "{{" }} $labels.node {{ "}}" }}'
-            description: 'Kubernetes node is NotReady for 1m.'
+              Node={{ $labels.node }}
+              Mount={{ $labels.mountpoint }} Device={{ $labels.device }}
+              Free={{ humanize1024 $value }}B
