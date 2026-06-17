@@ -180,8 +180,8 @@ kube-prometheus-stack:
           memory: 250Mi
           cpu: 250m
         limits:
-          memory: 500Mi
-          cpu: 1Gi
+          memory: 1Gi
+          cpu: 1
 
       storageSpec:
         volumeClaimTemplate:
