@@ -45,7 +45,8 @@ app-of-apps/
   ↓
 apps/
   ↓
-actual cluster services```
+actual cluster services
+```
 
 ---
 
@@ -234,7 +235,10 @@ No manual kubectl-based installs are expected after bootstrap.
 Apply only the root ArgoCD application:
 
 ```
-kubectl apply -f argocd/templates/apps/argocd.yaml
+helm dependency build
+helm install argocd ./argocd \
+  -n argocd --create-namespace \
+  -f ./argocd/values.yaml
 ```
 
 This initializes everything else automatically.
